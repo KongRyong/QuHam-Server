@@ -5,7 +5,10 @@
  */
 
 const app = require('../app');
-const debug = require('debug')('quham-server:server');
+const path = require('path');
+const filename = path.basename(__filename);
+const writeLog = require('debug')(`quham-server: log ${filename}`),
+  writeError = require('debug')(`quham-server: error ${filename}`);
 const http = require('http');
 
 /**
@@ -34,9 +37,10 @@ server.on('listening', onListening);
  */
 
 function normalizePort(val) {
-  const port = parseInt(val, 10);
+  const radix = 10;
+  const port = parseInt(val, radix);
 
-  if (isNaN(port)) {
+  if (Number.isNaN(port)) {
     // named pipe
     return val;
   }
@@ -55,24 +59,24 @@ function normalizePort(val) {
 
 function onError(error) {
   if (error.syscall !== 'listen') {
+    writeError(error);
     throw error;
   }
 
-  const bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
+  const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+      writeError(`${bind} requires elevated privileges`);
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+      writeError(`${bind} is already in use`);
       process.exit(1);
       break;
     default:
+      writeError(error);
       throw error;
   }
 }
@@ -83,8 +87,6 @@ function onError(error) {
 
 function onListening() {
   const addr = server.address();
-  const bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
+  writeLog(`Listening on ${bind}`);
 }
